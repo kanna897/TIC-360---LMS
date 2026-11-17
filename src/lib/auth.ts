@@ -88,6 +88,29 @@ export const signInWithSupabase = async (
   return { success: true, user: profileToAccount(data.user, profile), isSupabaseAuth: true };
 };
 
+export const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
+  if (!checkIsSupabaseConfigured()) {
+    return { success: false, error: 'Authentication service is not configured.' };
+  }
+
+  const redirectTo = typeof window !== 'undefined'
+    ? `${window.location.origin}/`
+    : 'https://tic-360.vercel.app/';
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'select_account',
+      },
+    },
+  });
+
+  return error ? { success: false, error: error.message } : { success: true };
+};
+
 export const registerStudentWithSupabase = async (accountData: {
   email: string;
   password: string;
