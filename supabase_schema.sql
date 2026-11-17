@@ -325,7 +325,7 @@ DECLARE
 BEGIN
     FOREACH t IN ARRAY tables LOOP
         EXECUTE format('DROP POLICY IF EXISTS "Allow full access on %I" ON %I;', t, t);
-        EXECUTE format('CREATE POLICY "Allow full access on %I" ON %I FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);', t, t);
+        -- Secure policies are installed by supabase_security_hardening.sql.
     END LOOP;
 END $$;
 
@@ -377,13 +377,13 @@ DECLARE
     demo_student_id UUID := 'a0000000-0000-0000-0000-000000000005'::UUID;
 BEGIN
     -- 1. Admin
-    IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'admin@unicomtic.lk') THEN
+    IF FALSE AND NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'admin@unicomtic.lk') THEN
         INSERT INTO auth.users (
             instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
             raw_app_meta_data, raw_user_meta_data, created_at, updated_at
         ) VALUES (
             '00000000-0000-0000-0000-000000000000', admin_id, 'authenticated', 'authenticated',
-            'admin@unicomtic.lk', crypt('Admin@TIC360#2026', gen_salt('bf')), NOW(),
+            'admin@unicomtic.lk', crypt('DISABLED', gen_salt('bf')), NOW(),
             '{"provider":"email","providers":["email"]}'::jsonb,
             '{"full_name":"System Administrator","role":"Admin","department":"Executive Administration"}'::jsonb,
             NOW(), NOW()
@@ -394,13 +394,13 @@ BEGIN
     END IF;
 
     -- 2. Blossom Trust Officer
-    IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'trustee@blossom.org') THEN
+    IF FALSE AND NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'trustee@blossom.org') THEN
         INSERT INTO auth.users (
             instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
             raw_app_meta_data, raw_user_meta_data, created_at, updated_at
         ) VALUES (
             '00000000-0000-0000-0000-000000000000', trustee_id, 'authenticated', 'authenticated',
-            'trustee@blossom.org', crypt('Trustee@TIC360#2026', gen_salt('bf')), NOW(),
+            'trustee@blossom.org', crypt('DISABLED', gen_salt('bf')), NOW(),
             '{"provider":"email","providers":["email"]}'::jsonb,
             '{"full_name":"Blossom Trust Compliance Officer","role":"Blossom Trust Officer","department":"Blossom Trust Foundation"}'::jsonb,
             NOW(), NOW()
@@ -411,13 +411,13 @@ BEGIN
     END IF;
 
     -- 3. Trainer
-    IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'trainer@unicomtic.lk') THEN
+    IF FALSE AND NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'trainer@unicomtic.lk') THEN
         INSERT INTO auth.users (
             instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
             raw_app_meta_data, raw_user_meta_data, created_at, updated_at
         ) VALUES (
             '00000000-0000-0000-0000-000000000000', trainer_id, 'authenticated', 'authenticated',
-            'trainer@unicomtic.lk', crypt('Trainer@TIC360#2026', gen_salt('bf')), NOW(),
+            'trainer@unicomtic.lk', crypt('DISABLED', gen_salt('bf')), NOW(),
             '{"provider":"email","providers":["email"]}'::jsonb,
             '{"full_name":"Senior Lead Instructor","role":"Trainer","department":"Academic Faculty"}'::jsonb,
             NOW(), NOW()
@@ -428,13 +428,13 @@ BEGIN
     END IF;
 
     -- 4. Data Entry Officer
-    IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'dataentry@unicomtic.lk') THEN
+    IF FALSE AND NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'dataentry@unicomtic.lk') THEN
         INSERT INTO auth.users (
             instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
             raw_app_meta_data, raw_user_meta_data, created_at, updated_at
         ) VALUES (
             '00000000-0000-0000-0000-000000000000', data_id, 'authenticated', 'authenticated',
-            'dataentry@unicomtic.lk', crypt('Data@TIC360#2026', gen_salt('bf')), NOW(),
+            'dataentry@unicomtic.lk', crypt('DISABLED', gen_salt('bf')), NOW(),
             '{"provider":"email","providers":["email"]}'::jsonb,
             '{"full_name":"Data Entry Officer","role":"Data Entry Officer","department":"Operations & Admissions"}'::jsonb,
             NOW(), NOW()
@@ -445,13 +445,13 @@ BEGIN
     END IF;
 
     -- 5. Student Demo
-    IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'student@unicomtic.lk') THEN
+    IF FALSE AND NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'student@unicomtic.lk') THEN
         INSERT INTO auth.users (
             instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
             raw_app_meta_data, raw_user_meta_data, created_at, updated_at
         ) VALUES (
             '00000000-0000-0000-0000-000000000000', demo_student_id, 'authenticated', 'authenticated',
-            'student@unicomtic.lk', crypt('Student@TIC360#2026', gen_salt('bf')), NOW(),
+            'student@unicomtic.lk', crypt('DISABLED', gen_salt('bf')), NOW(),
             '{"provider":"email","providers":["email"]}'::jsonb,
             '{"full_name":"Priya Sundaramoorthy (Demo)","role":"Student","department":"Vocational Trainees","ut_number":"UT-2026-001"}'::jsonb,
             NOW(), NOW()
@@ -530,10 +530,10 @@ ALTER TABLE career_survey_responses ENABLE ROW LEVEL SECURITY;
 
 -- Allow unrestricted insert/read/update for anon/authenticated (Public Forms)
 DROP POLICY IF EXISTS "Allow full access on absence_requests" ON absence_requests;
-CREATE POLICY "Allow full access on absence_requests" ON absence_requests FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+-- Secure policy installed by supabase_security_hardening.sql.
 
 DROP POLICY IF EXISTS "Allow full access on career_survey_responses" ON career_survey_responses;
-CREATE POLICY "Allow full access on career_survey_responses" ON career_survey_responses FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+-- Secure policy installed by supabase_security_hardening.sql.
 
 COMMIT;
 

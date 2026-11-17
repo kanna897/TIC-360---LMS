@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   ShieldCheck,
   Lock,
@@ -13,58 +13,33 @@ import {
   ArrowRight,
   CheckCircle2,
   AlertCircle,
-  Key,
-  Users,
   GraduationCap,
   UserPlus,
   ArrowLeft,
 } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { Button } from '@/components/ui/Button';
-import { SYSTEM_ACCOUNTS, authenticateUser, signInWithSupabase, UserAccount, getRegisteredAccounts } from '@/lib/auth';
+import { signInWithSupabase } from '@/lib/auth';
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { setCurrentRole, setCurrentAuthUser, orgProfile, students } = useStore();
 
-  const [activeTab, setActiveTab] = useState<'student' | 'staff'>('student');
-  const [identifier, setIdentifier] = useState('UT-2026-001');
-  const [password, setPassword] = useState('Student@TIC360#2026');
+  const [activeTab, setActiveTab] = useState<'student' | 'staff'>(
+    searchParams.get('type') === 'staff' ? 'staff' : 'student'
+  );
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [registeredAccounts, setRegisteredAccounts] = useState<UserAccount[]>([]);
-
-  useEffect(() => {
-    // Check url params for type
-    const type = searchParams.get('type');
-    if (type === 'staff') {
-      setActiveTab('staff');
-      setIdentifier('admin@unicomtic.lk');
-      setPassword('Admin@TIC360#2026');
-    } else {
-      setActiveTab('student');
-      setIdentifier('UT-2026-001');
-      setPassword('Student@TIC360#2026');
-    }
-
-    if (typeof window !== 'undefined') {
-      setRegisteredAccounts(getRegisteredAccounts());
-    }
-  }, [searchParams]);
 
   const handleTabChange = (tab: 'student' | 'staff') => {
     setActiveTab(tab);
     setErrorMsg('');
-    if (tab === 'student') {
-      setIdentifier(registeredAccounts[0]?.utNumber || 'UT-2026-001');
-      setPassword('Student@TIC360#2026');
-    } else {
-      setIdentifier('admin@unicomtic.lk');
-      setPassword('Admin@TIC360#2026');
-    }
+    setIdentifier('');
+    setPassword('');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -86,23 +61,17 @@ function LoginForm() {
 
       setIsSuccess(true);
       setTimeout(() => {
-        if (res.user?.role === 'Student') {
-          router.push('/portal');
-        } else {
-          router.push('/');
-        }
+        const requestedPath = searchParams.get('next');
+        const safePath = requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
+          ? requestedPath
+          : res.user?.role === 'Student' ? '/portal' : '/';
+        window.location.assign(safePath);
       }, 700);
     } catch (err) {
       console.error(err);
       setErrorMsg('An error occurred during authentication.');
       setIsLoading(false);
     }
-  };
-
-  const handleQuickFill = (account: { identifier: string; pass: string }) => {
-    setIdentifier(account.identifier);
-    setPassword(account.pass);
-    setErrorMsg('');
   };
 
   return (
@@ -186,7 +155,7 @@ function LoginForm() {
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
               {activeTab === 'student'
-                ? 'Enter your Student UT Number (e.g. UT-2026-001) or Registered Email'
+                ? 'Enter the email address linked to your student account'
                 : 'Enter your official administrative or faculty email credentials'}
             </p>
           </div>
@@ -194,7 +163,7 @@ function LoginForm() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-slate-300">
-                {activeTab === 'student' ? 'Student UT Number or Email' : 'Official Email'}
+                {activeTab === 'student' ? 'Student Email' : 'Official Email'}
               </label>
               <div className="relative">
                 {activeTab === 'student' ? (
@@ -207,7 +176,7 @@ function LoginForm() {
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder={activeTab === 'student' ? 'UT-2026-001 or priya.s@unicomtic.lk' : 'admin@unicomtic.lk'}
+                  placeholder={activeTab === 'student' ? 'student@example.com' : 'name@unicomtic.lk'}
                   className="w-full rounded-xl bg-slate-950/70 border border-slate-800 pl-10 pr-4 py-2.5 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -273,85 +242,9 @@ function LoginForm() {
             </Button>
           </form>
 
-          {/* Quick Demo Credentials Switcher */}
           <div className="pt-4 border-t border-slate-800/80 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Key className="w-3.5 h-3.5 text-cyan-400" />
-                {activeTab === 'student' ? 'Demo Student Logins' : 'Staff Role Logins'}
-              </span>
-              <span className="text-[10px] text-slate-400">Click to fill</span>
-            </div>
-
-            {activeTab === 'student' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
-                {/* Dynamically registered students first if any */}
-                {registeredAccounts.slice(0, 2).map((acc) => (
-                  <button
-                    key={acc.id}
-                    type="button"
-                    onClick={() => handleQuickFill({ identifier: acc.utNumber || acc.email, pass: acc.password || 'Student@123' })}
-                    className={`p-2 rounded-xl text-left border transition-all flex flex-col justify-between ${
-                      identifier === acc.utNumber || identifier === acc.email
-                        ? 'bg-blue-600/20 border-blue-500 text-white'
-                        : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                    }`}
-                  >
-                    <span className="font-bold text-[11px] text-emerald-300 truncate">✨ {acc.fullName}</span>
-                    <span className="text-[10px] text-slate-400 font-mono">{acc.utNumber || acc.email}</span>
-                  </button>
-                ))}
-
-                {/* Standard demo student */}
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill({ identifier: 'UT-2026-001', pass: 'Student@TIC360#2026' })}
-                  className={`p-2 rounded-xl text-left border transition-all flex flex-col justify-between ${
-                    identifier === 'UT-2026-001'
-                      ? 'bg-blue-600/20 border-blue-500 text-white'
-                      : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                  }`}
-                >
-                  <span className="font-bold text-[11px] text-slate-200">Priya S. (UT-2026-001)</span>
-                  <span className="text-[10px] text-slate-400 font-mono">UT-2026-001</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill({ identifier: 'UT-2026-002', pass: 'Student@123' })}
-                  className={`p-2 rounded-xl text-left border transition-all flex flex-col justify-between ${
-                    identifier === 'UT-2026-002'
-                      ? 'bg-blue-600/20 border-blue-500 text-white'
-                      : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                  }`}
-                >
-                  <span className="font-bold text-[11px] text-slate-200">K. Tharsan (UT-2026-002)</span>
-                  <span className="text-[10px] text-slate-400 font-mono">UT-2026-002</span>
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
-                {SYSTEM_ACCOUNTS.filter((a) => a.role !== 'Student').map((acc) => (
-                  <button
-                    key={acc.id}
-                    type="button"
-                    onClick={() => handleQuickFill({ identifier: acc.email, pass: acc.password || '' })}
-                    className={`p-2 rounded-xl text-left border transition-all flex flex-col justify-between ${
-                      identifier === acc.email
-                        ? 'bg-blue-600/20 border-blue-500 text-white'
-                        : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                    }`}
-                  >
-                    <span className="font-bold text-[11px] text-slate-200">{acc.role}</span>
-                    <span className="text-[10px] text-slate-400 font-mono truncate">{acc.email}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Registration Promotion Link */}
             <div className="p-3 rounded-2xl bg-emerald-950/30 border border-emerald-800/40 flex items-center justify-between text-xs text-emerald-300">
-              <span className="text-[11px]">Haven't registered yet as a trainee?</span>
+              <span className="text-[11px]">Haven&apos;t registered yet as a trainee?</span>
               <Link
                 href="/register"
                 className="font-bold text-white hover:text-emerald-300 underline shrink-0"

@@ -1,0 +1,12 @@
+.env*
+*.xlsx
+sheet.html
+scratch/
+scripts/
+extract_gids.js
+fetch_gids.js
+parse_excel.js
+supabase_schema.sql
+supabase_migrations.sql
+supabase_security_hardening.sql
+SECURITY_DEPLOYMENT.md

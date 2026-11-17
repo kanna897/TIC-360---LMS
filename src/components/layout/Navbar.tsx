@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { Button } from '@/components/ui/Button';
-import { UserRole } from '@/lib/types';
 import { ROLE_PERMISSIONS } from '@/lib/permissions';
 
 interface NavbarProps {
@@ -29,7 +28,6 @@ interface NavbarProps {
 export const Navbar = ({ onToggleSidebar }: NavbarProps) => {
   const {
     currentRole,
-    setCurrentRole,
     currentAuthUser,
     currentStudent,
     theme,
@@ -40,16 +38,7 @@ export const Navbar = ({ onToggleSidebar }: NavbarProps) => {
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
-  const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
-  const roles: UserRole[] = [
-    'Admin',
-    'Blossom Trust Officer',
-    'Trainer',
-    'Data Entry Officer',
-    'Student',
-  ];
 
   return (
     <header className="sticky top-0 z-30 w-full h-16 bg-slate-950/90 border-b border-slate-800/80 backdrop-blur-2xl flex items-center justify-between px-3 sm:px-6">
@@ -111,59 +100,8 @@ export const Navbar = ({ onToggleSidebar }: NavbarProps) => {
           )}
         </div>
 
-        {/* RBAC Role Switcher */}
-        <div className="relative">
-          <button
-            onClick={() => setShowRoleMenu(!showRoleMenu)}
-            className="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-200 flex items-center gap-1.5 transition-colors"
-            title="Switch User Role for RBAC Testing"
-          >
-            <Shield className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="hidden sm:inline">{currentRole}</span>
-          </button>
-
-          {showRoleMenu && (
-            <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-2.5 z-50 animate-fadeIn">
-              <div className="px-2 pb-2 mb-1 border-b border-slate-800">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Role-Based Access Control
-                </p>
-                <p className="text-[11px] text-slate-300">Switch role to test access boundaries:</p>
-              </div>
-              <div className="space-y-1">
-                {roles.map((r) => {
-                  const p = ROLE_PERMISSIONS[r];
-                  const isCur = currentRole === r;
-                  return (
-                    <button
-                      key={r}
-                      onClick={() => {
-                        setCurrentRole(r);
-                        setShowRoleMenu(false);
-                      }}
-                      className={`w-full flex flex-col p-2 text-xs font-semibold rounded-xl transition-colors text-left ${
-                        isCur
-                          ? 'bg-blue-600/30 border border-blue-500/50 text-white'
-                          : 'text-slate-300 hover:bg-slate-800 border border-transparent'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span className="font-bold text-white">{r}</span>
-                        {isCur && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                            Active
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-slate-400 font-normal line-clamp-1 mt-0.5">
-                        {p?.description || ''}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+        <div className="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-200">
+          <span className="hidden sm:inline">{currentRole}</span>
         </div>
 
         {/* Theme Toggle */}

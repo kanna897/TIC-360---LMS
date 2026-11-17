@@ -12,9 +12,11 @@ const AppLayoutContent = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { currentRole } = useStore();
+  const { currentRole, currentAuthUser, authReady } = useStore();
 
   const isPublicForm =
+    pathname === '/login' ||
+    pathname === '/register' ||
     pathname === '/survey' ||
     pathname.startsWith('/survey/') ||
     pathname === '/graduate-survey' ||
@@ -24,16 +26,34 @@ const AppLayoutContent = ({ children }: { children: React.ReactNode }) => {
 
   // Comprehensive RBAC Route Guard: ensure user only accesses routes permitted for their role
   useEffect(() => {
-    if (isPublicForm) return; // Public student forms are accessible to anyone in any browser
-    if (currentRole && !canAccessRoute(currentRole, pathname)) {
+    if (!authReady || isPublicForm) return;
+    if (!currentAuthUser) {
+      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+      return;
+    }
+    if (!canAccessRoute(currentRole, pathname)) {
       const fallback = getDefaultRouteForRole(currentRole);
       router.replace(fallback);
     }
-  }, [currentRole, pathname, router, isPublicForm]);
+  }, [authReady, currentAuthUser, currentRole, pathname, router, isPublicForm]);
+
+  if (!isPublicForm && (!authReady || !currentAuthUser)) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-400 flex items-center justify-center text-sm">
+        Verifying secure session...
+      </div>
+    );
+  }
 
   // Standalone layout for public student forms (openable in any browser without login)
   if (isPublicForm) {
-    const formTitle = pathname.includes('absentees') ? 'ABSENTEES FORM' : 'CAREER SURVEY';
+    const formTitle = pathname === '/login'
+      ? 'SECURE SIGN IN'
+      : pathname === '/register'
+        ? 'ADMISSION'
+        : pathname.includes('absentees')
+          ? 'ABSENTEES FORM'
+          : 'CAREER SURVEY';
     
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-500 selection:text-white">

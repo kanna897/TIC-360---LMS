@@ -75,8 +75,6 @@ import {
 import { resolveStudentGroup } from './utils';
 import {
   UserAccount,
-  registerStudentAccount,
-  getRegisteredAccounts,
   signOutFromSupabase,
   registerStudentWithSupabase,
 } from './auth';
@@ -106,6 +104,7 @@ interface StoreContextType {
   setCurrentRole: (role: UserRole) => void;
   currentAuthUser: UserAccount | null;
   setCurrentAuthUser: (user: UserAccount | null) => void;
+  authReady: boolean;
   currentStudent: Student | null;
   theme: 'dark' | 'light';
   toggleTheme: () => void;
@@ -274,8 +273,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(initialAuditLogs);
   const [orgProfile, setOrgProfile] = useState<OrgProfile>(initialOrgProfile);
   const [settings, setSettings] = useState<SystemSettings>(initialSystemSettings);
-  const [currentRole, setCurrentRole] = useState<UserRole>('Admin');
+  const [currentRole, setCurrentRole] = useState<UserRole>('Student');
   const [currentAuthUser, setCurrentAuthUser] = useState<UserAccount | null>(null);
+  const [authReady, setAuthReady] = useState(!checkIsSupabaseConfigured());
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   // Load state from Supabase on startup (fallback to localStorage if offline/not configured)
@@ -446,10 +446,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       } finally {
         // UI preferences always from localStorage
         try {
-          const sRole = localStorage.getItem(STORAGE_KEYS.ROLE);
-          if (sRole) setCurrentRole(sRole as UserRole);
-          const sUser = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
-          if (sUser) setCurrentAuthUser(JSON.parse(sUser));
           const sTheme = localStorage.getItem(STORAGE_KEYS.THEME);
           if (sTheme) setTheme(sTheme as 'dark' | 'light');
         } catch (e) {
@@ -463,10 +459,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   // Supabase Auth Session Synchronization
   useEffect(() => {
-    if (!checkIsSupabaseConfigured()) return;
+    if (!checkIsSupabaseConfigured()) {
+      return;
+    }
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user && event === 'SIGNED_IN') {
+      if (session?.user && event !== 'SIGNED_OUT') {
         const u = session.user;
         let role = (u.user_metadata?.role as UserRole) || 'Student';
         let fullName = u.user_metadata?.full_name || u.email?.split('@')[0] || 'User';
@@ -507,9 +505,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
         setCurrentAuthUser(userAcc);
         setCurrentRole(role);
-      } else if (event === 'SIGNED_OUT') {
+      } else {
         setCurrentAuthUser(null);
+        setCurrentRole('Student');
       }
+      setAuthReady(true);
     });
 
     return () => {
@@ -522,7 +522,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (!isLoaded) return;
 
     // UI preferences always go to localStorage
-    localStorage.setItem(STORAGE_KEYS.ROLE, currentRole);
     if (currentAuthUser) {
       localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(currentAuthUser));
     } else {
@@ -653,7 +652,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
     }
-    setCurrentRole('Admin');
+    setCurrentRole('Student');
   };
 
   const addAuditLog = (action: string, entity: string, recordId?: string, details?: string) => {
@@ -719,21 +718,16 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       email: newStudent.email,
       fullName: newStudent.fullName,
       role: 'Student',
-      password: password || 'Student@123',
       avatarUrl: newStudent.photoUrl,
       department: 'Vocational Trainees',
       studentId: newId,
       utNumber: utNumber,
     };
 
-    registerStudentAccount(newAccount);
-    setCurrentAuthUser(newAccount);
-    setCurrentRole('Student');
-
     // Register in Supabase Auth & user_profiles
     registerStudentWithSupabase({
       email: newStudent.email,
-      password: password || 'Student@123',
+      password,
       fullName: newStudent.fullName,
       utNumber,
       studentId: newId,
@@ -1784,7 +1778,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           const sessionPromise = sessions.length > 0 ? syncAttendanceSessions(sessions) : Promise.resolve();
           sessionPromise.then(() => {
             // Finally insert marks and monthly records
-            const bulkMarks: any[] = [];
+            const bulkMarks: Array<{
+              id: string;
+              session_id: string;
+              student_id: string;
+              mark: AttendanceMark;
+            }> = [];
             Object.keys(remappedMarks).forEach((sId) => {
               Object.keys(remappedMarks[sId]).forEach((stuId) => {
                 bulkMarks.push({
@@ -1951,6 +1950,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         setCurrentRole,
         currentAuthUser,
         setCurrentAuthUser,
+        authReady,
         currentStudent,
         theme,
         toggleTheme,

@@ -12,7 +12,6 @@ import {
   Sparkles,
   Check,
   RefreshCw,
-  Zap,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Modal } from '@/components/ui/Modal';
@@ -96,38 +95,6 @@ export const BulkAttendanceUploadModal: React.FC<BulkAttendanceUploadModalProps>
     if (file && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))) {
       const buffer = await file.arrayBuffer();
       processBuffer(buffer, file.name);
-    }
-  };
-
-  // Quick load 2026 Semester attendance file (Students Attendance Record - 2026 (6).xlsx)
-  const handleLoadBundled2026File = async () => {
-    setIsParsing(true);
-    setParseError(null);
-    try {
-      const res = await fetch('/temp_attendance_2026.xlsx');
-      if (!res.ok) throw new Error('Could not load temp_attendance_2026.xlsx');
-      const buffer = await res.arrayBuffer();
-      await processBuffer(buffer, 'Students Attendance Record - 2026 (6).xlsx');
-    } catch (err) {
-      console.error(err);
-      setParseError('Unable to load bundled 2026 attendance file. Please choose or drag the file manually.');
-      setIsParsing(false);
-    }
-  };
-
-  // Quick load pre-bundled React attendance file
-  const handleLoadBundledReactFile = async () => {
-    setIsParsing(true);
-    setParseError(null);
-    try {
-      const res = await fetch('/react_attendance.xlsx');
-      if (!res.ok) throw new Error('Could not load react_attendance.xlsx');
-      const buffer = await res.arrayBuffer();
-      await processBuffer(buffer, 'React - Students Attendance - 2026.xlsx');
-    } catch (err) {
-      console.error(err);
-      setParseError('Unable to load bundled React attendance file. Please choose or drag the file manually.');
-      setIsParsing(false);
     }
   };
 
@@ -218,36 +185,6 @@ export const BulkAttendanceUploadModal: React.FC<BulkAttendanceUploadModalProps>
               </p>
 
               <div className="flex flex-wrap items-center justify-center gap-3">
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="sm"
-                  disabled={isParsing}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleLoadBundled2026File();
-                  }}
-                  leftIcon={<Zap className="w-4 h-4 text-emerald-200" />}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-md shadow-emerald-950/40"
-                >
-                  ⚡ 1-Click Load Full Stack Record (2026)
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={isParsing}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleLoadBundledReactFile();
-                  }}
-                  leftIcon={<Zap className="w-4 h-4 text-cyan-400" />}
-                  className="border-cyan-500/60 text-cyan-300 hover:bg-cyan-500/10 font-bold bg-cyan-950/30"
-                >
-                  ⚛️ 1-Click Load Frontend (React) Record
-                </Button>
-
                 <Button
                   type="button"
                   variant="secondary"
