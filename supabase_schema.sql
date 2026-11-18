@@ -183,7 +183,8 @@ CREATE TABLE dropouts (
     reason VARCHAR(100) NOT NULL,
     rejoin_possibility VARCHAR(50) DEFAULT 'Unknown',
     remarks TEXT,
-    recorded_at TIMESTAMPTZ DEFAULT NOW()
+    recorded_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT unique_dropout_student UNIQUE (student_id)
 );
 
 -- 11. ASSESSMENTS TABLE (Assignments, Projects, Exams)
