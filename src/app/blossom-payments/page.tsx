@@ -183,13 +183,19 @@ export default function BlossomPaymentsPage() {
 
   // Filtered monthly payments list
   const filteredPayments = useMemo(() => {
-    return currentMonthPayments.filter((p) => {
-      const matchesSearch =
-        p.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.utNumber.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
+    return currentMonthPayments
+      .filter((p) => {
+        const matchesSearch =
+          p.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.utNumber.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        const calculatedAmountA = a.isEligible ? a.amount : 0;
+        const calculatedAmountB = b.isEligible ? b.amount : 0;
+        return calculatedAmountB - calculatedAmountA;
+      });
   }, [currentMonthPayments, searchQuery, statusFilter]);
 
   // Monthly Calculations
