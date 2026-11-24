@@ -62,9 +62,15 @@ function LoginForm() {
       setIsSuccess(true);
       setTimeout(() => {
         const requestedPath = searchParams.get('next');
-        const safePath = requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
+        const safePath = res.user?.mustChangePassword
+          ? '/change-password'
+          : requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
           ? requestedPath
-          : res.user?.role === 'Student' ? '/portal' : '/';
+          : res.user?.role === 'Student'
+            ? '/portal'
+            : res.user?.role === 'Trainer'
+              ? '/trainer'
+              : '/';
         window.location.assign(safePath);
       }, 700);
     } catch (err) {
@@ -165,8 +171,8 @@ function LoginForm() {
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
               {activeTab === 'student'
-                ? 'Enter the email address linked to your student account'
-                : 'Enter your official administrative or faculty email credentials'}
+                ? 'Enter your LMS username or linked email address'
+                : 'Enter your official LMS username or email credentials'}
             </p>
           </div>
 
@@ -188,13 +194,13 @@ function LoginForm() {
 
             <div className="flex items-center gap-3 text-[10px] uppercase tracking-wider text-slate-500">
               <span className="h-px flex-1 bg-slate-800" />
-              <span>or use email</span>
+              <span>or use username / email</span>
               <span className="h-px flex-1 bg-slate-800" />
             </div>
 
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-slate-300">
-                {activeTab === 'student' ? 'Student Email' : 'Official Email'}
+                Username or Email
               </label>
               <div className="relative">
                 {activeTab === 'student' ? (
@@ -207,7 +213,7 @@ function LoginForm() {
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder={activeTab === 'student' ? 'student@example.com' : 'name@unicomtic.lk'}
+                  placeholder={activeTab === 'student' ? 'stu001 or student@example.com' : 'username or name@unicomtic.lk'}
                   className="w-full rounded-xl bg-slate-950/70 border border-slate-800 pl-10 pr-4 py-2.5 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>

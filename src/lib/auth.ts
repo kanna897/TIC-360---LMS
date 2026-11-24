@@ -1,8 +1,9 @@
-import { UserRole, Student } from './types';
+import { isUserRole, UserRole, Student } from './types';
 import { supabase, checkIsSupabaseConfigured } from './supabaseClient';
 
 export interface UserAccount {
   id: string;
+  username?: string;
   email: string;
   fullName: string;
   role: UserRole;
@@ -11,14 +12,14 @@ export interface UserAccount {
   department: string;
   studentId?: string;
   utNumber?: string;
+  accountStatus?: 'Active' | 'Inactive' | 'Suspended';
+  mustChangePassword?: boolean;
 }
 
 // Display-only account catalogue. Credentials must never be shipped to the browser.
 export const SYSTEM_ACCOUNTS: UserAccount[] = [
   { id: 'staff-admin', email: 'admin@unicomtic.lk', fullName: 'System Administrator', role: 'Admin', department: 'Executive Administration' },
-  { id: 'staff-trustee', email: 'trustee@blossom.org', fullName: 'Blossom Trust Compliance Officer', role: 'Blossom Trust Officer', department: 'Blossom Trust Foundation' },
   { id: 'staff-trainer', email: 'trainer@unicomtic.lk', fullName: 'Senior Lead Instructor', role: 'Trainer', department: 'Academic Faculty' },
-  { id: 'staff-data', email: 'dataentry@unicomtic.lk', fullName: 'Data Entry Officer', role: 'Data Entry Officer', department: 'Operations & Admissions' },
 ];
 
 const LEGACY_ACCOUNTS_KEY = 'tic360_registered_accounts';
@@ -44,29 +45,37 @@ export const authenticateUser = (
 const profileToAccount = (
   user: { id: string; email?: string | null },
   profile: Record<string, unknown>
-): UserAccount => ({
-  id: user.id,
-  email: String(profile.email || user.email || ''),
-  fullName: String(profile.full_name || user.email?.split('@')[0] || 'User'),
-  role: (profile.role as UserRole) || 'Student',
-  department: String(profile.department || ''),
-  studentId: profile.student_id ? String(profile.student_id) : undefined,
-  utNumber: profile.ut_number ? String(profile.ut_number) : undefined,
-  avatarUrl: profile.avatar_url ? String(profile.avatar_url) : undefined,
-});
+): UserAccount | null => {
+  if (!isUserRole(profile.role)) return null;
+
+  return {
+    id: user.id,
+    username: profile.username ? String(profile.username) : undefined,
+    email: String(profile.email || user.email || ''),
+    fullName: String(profile.full_name || user.email?.split('@')[0] || 'User'),
+    role: profile.role,
+    department: String(profile.department || ''),
+    studentId: profile.student_id ? String(profile.student_id) : undefined,
+    utNumber: profile.ut_number ? String(profile.ut_number) : undefined,
+    avatarUrl: profile.avatar_url ? String(profile.avatar_url) : undefined,
+    accountStatus: profile.account_status as UserAccount['accountStatus'],
+    mustChangePassword: Boolean(profile.must_change_password),
+  };
+};
 
 export const signInWithSupabase = async (
   identifierInput: string,
   passwordInput: string,
   _extraStudents: Student[] = []
 ): Promise<{ success: boolean; user?: UserAccount; error?: string; isSupabaseAuth?: boolean }> => {
-  const email = identifierInput.trim().toLowerCase();
+  const identifier = identifierInput.trim().toLowerCase();
   const password = passwordInput.trim();
 
-  if (!email || !password) return { success: false, error: 'Enter both email and password.' };
-  if (!email.includes('@')) {
-    return { success: false, error: 'For secure sign-in, enter the email linked to your account.' };
+  if (!identifier || !password) return { success: false, error: 'Enter both username/email and password.' };
+  if (!identifier.includes('@') && !/^[a-z0-9._-]{3,50}$/.test(identifier)) {
+    return { success: false, error: 'Enter a valid username or email address.' };
   }
+  const email = identifier.includes('@') ? identifier : `${identifier}@auth.unicomtic.local`;
   if (!checkIsSupabaseConfigured()) {
     return { success: false, error: 'Authentication service is not configured.' };
   }
@@ -76,7 +85,7 @@ export const signInWithSupabase = async (
 
   const { data: profile, error: profileError } = await supabase
     .from('user_profiles')
-    .select('id,email,full_name,role,department,student_id,ut_number,avatar_url')
+    .select('id,username,email,full_name,role,account_status,must_change_password,department,student_id,ut_number,avatar_url')
     .eq('id', data.user.id)
     .single();
 
@@ -85,7 +94,17 @@ export const signInWithSupabase = async (
     return { success: false, error: 'Your account profile is unavailable. Contact an administrator.' };
   }
 
-  return { success: true, user: profileToAccount(data.user, profile), isSupabaseAuth: true };
+  const account = profileToAccount(data.user, profile);
+  if (!account) {
+    await supabase.auth.signOut();
+    return { success: false, error: 'This account does not have an LMS role. Contact an administrator.' };
+  }
+  if (account.accountStatus !== 'Active') {
+    await supabase.auth.signOut();
+    return { success: false, error: 'This LMS account is not active. Contact an administrator.' };
+  }
+
+  return { success: true, user: account, isSupabaseAuth: true };
 };
 
 export const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {

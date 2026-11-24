@@ -16,6 +16,7 @@ import {
   OrgProfile,
   SystemSettings,
   UserRole,
+  isUserRole,
   AttendanceStatus,
   BlossomPaymentStatus,
   DropoutReason,
@@ -466,12 +467,17 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user && event !== 'SIGNED_OUT') {
         const u = session.user;
-        let role = (u.user_metadata?.role as UserRole) || 'Student';
+        // Authorization roles must come from the protected profile row, never
+        // from user-editable Auth metadata.
+        let role: UserRole = 'Student';
         let fullName = u.user_metadata?.full_name || u.email?.split('@')[0] || 'User';
+        let username: string | undefined;
         let department = u.user_metadata?.department || '';
         let utNumber = u.user_metadata?.ut_number;
         let studentId = u.user_metadata?.student_id;
         let avatarUrl = u.user_metadata?.avatar_url;
+        let accountStatus: UserAccount['accountStatus'];
+        let mustChangePassword = false;
 
         try {
           const { data: profile } = await supabase
@@ -481,12 +487,15 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             .maybeSingle();
 
           if (profile) {
-            role = (profile.role as UserRole) || role;
+            role = isUserRole(profile.role) ? profile.role : role;
+            username = profile.username || username;
             fullName = profile.full_name || fullName;
             department = profile.department || department;
             utNumber = profile.ut_number || utNumber;
             studentId = profile.student_id || studentId;
             avatarUrl = profile.avatar_url || avatarUrl;
+            accountStatus = profile.account_status || accountStatus;
+            mustChangePassword = Boolean(profile.must_change_password);
           }
         } catch (e) {
           console.warn('[store] error fetching profile:', e);
@@ -494,6 +503,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
         const userAcc: UserAccount = {
           id: u.id,
+          username,
           email: u.email || '',
           fullName,
           role,
@@ -501,6 +511,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           department,
           studentId,
           utNumber,
+          accountStatus,
+          mustChangePassword,
         };
 
         setCurrentAuthUser(userAcc);

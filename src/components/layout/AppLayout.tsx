@@ -13,6 +13,7 @@ const AppLayoutContent = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { currentRole, currentAuthUser, authReady } = useStore();
+  const isPasswordChange = pathname === '/change-password';
 
   const isPublicForm =
     pathname === '/login' ||
@@ -31,11 +32,19 @@ const AppLayoutContent = ({ children }: { children: React.ReactNode }) => {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
       return;
     }
+    if (currentAuthUser.mustChangePassword && !isPasswordChange) {
+      router.replace('/change-password');
+      return;
+    }
+    if (!currentAuthUser.mustChangePassword && isPasswordChange) {
+      router.replace(getDefaultRouteForRole(currentRole));
+      return;
+    }
     if (!canAccessRoute(currentRole, pathname)) {
       const fallback = getDefaultRouteForRole(currentRole);
       router.replace(fallback);
     }
-  }, [authReady, currentAuthUser, currentRole, pathname, router, isPublicForm]);
+  }, [authReady, currentAuthUser, currentRole, pathname, router, isPublicForm, isPasswordChange]);
 
   if (!isPublicForm && (!authReady || !currentAuthUser)) {
     return (
@@ -46,9 +55,11 @@ const AppLayoutContent = ({ children }: { children: React.ReactNode }) => {
   }
 
   // Standalone layout for public student forms (openable in any browser without login)
-  if (isPublicForm) {
+  if (isPublicForm || isPasswordChange) {
     const formTitle = pathname === '/login'
       ? 'SECURE SIGN IN'
+      : isPasswordChange
+        ? 'SECURE PASSWORD'
       : pathname === '/register'
         ? 'ADMISSION'
         : pathname.includes('absentees')
@@ -103,12 +114,11 @@ const AppLayoutContent = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-500 selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#334155] flex flex-col font-sans selection:bg-[#F5B923] selection:text-[#102A43]">
       {/* Background Ambient Glows */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/3 -right-40 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 left-1/3 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#F5B923]/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 -right-40 w-96 h-96 bg-[#0D9488]/10 rounded-full blur-3xl" />
       </div>
 
       {/* Sidebar */}

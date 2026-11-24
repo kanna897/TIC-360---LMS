@@ -49,7 +49,7 @@ export default function StudentPortalPage() {
   const student = currentStudent || students[0];
 
   // Redirect non-student roles away from portal
-  const nonStudentRoles = ['Admin', 'Trainer', 'Blossom Trust Officer', 'Data Entry Officer'];
+  const nonStudentRoles = ['Admin', 'Trainer'];
   const isNonStudent = currentRole ? nonStudentRoles.includes(currentRole) : false;
 
   useEffect(() => {

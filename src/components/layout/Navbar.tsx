@@ -41,12 +41,12 @@ export const Navbar = ({ onToggleSidebar }: NavbarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <header className="sticky top-0 z-30 w-full h-16 bg-slate-950/90 border-b border-slate-800/80 backdrop-blur-2xl flex items-center justify-between px-3 sm:px-6">
+    <header className="sticky top-0 z-30 w-full h-16 bg-white/95 border-b border-slate-200 backdrop-blur-2xl flex items-center justify-between px-3 sm:px-6 shadow-sm">
       {/* Left side: Hamburger & Search */}
       <div className="flex items-center gap-3">
         <button
           onClick={onToggleSidebar}
-          className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 lg:hidden transition-colors"
+          className="p-2 rounded-xl text-slate-500 hover:text-[#102A43] hover:bg-slate-100 lg:hidden transition-colors"
           aria-label="Toggle Navigation"
         >
           <Menu className="w-5 h-5" />
@@ -59,7 +59,7 @@ export const Navbar = ({ onToggleSidebar }: NavbarProps) => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search students, UT numbers, courses, NIC..."
-            className="w-64 lg:w-80 rounded-xl bg-slate-900/90 border border-slate-800/80 pl-10 pr-4 py-2 text-xs text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-64 lg:w-80 rounded-xl bg-slate-50 border border-slate-200 pl-10 pr-4 py-2 text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-[#0D9488] focus:ring-1 focus:ring-[#0D9488]"
           />
         </div>
       </div>
@@ -100,7 +100,7 @@ export const Navbar = ({ onToggleSidebar }: NavbarProps) => {
           )}
         </div>
 
-        <div className="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-200">
+        <div className="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-[#102A43] border border-[#102A43] text-white">
           <span className="hidden sm:inline">{currentRole}</span>
         </div>
 

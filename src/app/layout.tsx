@@ -3,9 +3,9 @@ import './globals.css';
 import { AppLayout } from '@/components/layout/AppLayout';
 
 export const metadata: Metadata = {
-  title: 'TIC360 - Training Centre & Blossom Trust MIS',
+  title: 'UNICOM TIC LMS',
   description:
-    'Student Lifecycle, Attendance Compliance, Assessments, and Post-Graduation Outcome Platform for Unicom TIC Training Centre & Blossom Trust.',
+    'Independent learning and student lifecycle management platform for UNICOM TIC.',
   icons: {
     icon: '/logo-badge.jpg',
     shortcut: '/logo-badge.jpg',

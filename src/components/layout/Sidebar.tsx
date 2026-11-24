@@ -38,13 +38,13 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   return (
     <aside
       className={cn(
-        'fixed top-0 left-0 bottom-0 z-40 w-72 bg-slate-950 border-r border-slate-800/80 backdrop-blur-2xl transition-transform duration-300 ease-in-out flex flex-col justify-between',
+        'fixed top-0 left-0 bottom-0 z-40 w-72 bg-[#102A43] border-r border-white/10 transition-transform duration-300 ease-in-out flex flex-col justify-between',
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       )}
     >
       {/* Brand Header */}
       <div>
-        <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <Link href={roleConfig.defaultRoute} className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-900 border border-slate-700/80 shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300 shrink-0 ring-2 ring-blue-500/20">
               <img
@@ -55,9 +55,9 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-black text-base text-white tracking-tight">TIC360</span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                  TRAINING
+                <span className="font-black text-base text-white tracking-tight">UNICOM TIC</span>
+                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-[#F5B923]/15 text-[#F5B923] border border-[#F5B923]/30">
+                  LMS
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 font-medium truncate max-w-[160px]">
@@ -85,15 +85,15 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 className={cn(
                   'group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 select-none',
                   isActive
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900'
+                    ? 'bg-[#F5B923] text-[#102A43] shadow-md shadow-black/10'
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
                 )}
               >
                 <div className="flex items-center gap-2.5">
                   <Icon
                     className={cn(
                       'w-4 h-4 transition-colors shrink-0',
-                      isActive ? 'text-white' : 'text-slate-400 group-hover:text-blue-400'
+                      isActive ? 'text-[#102A43]' : 'text-slate-400 group-hover:text-[#F5B923]'
                     )}
                   />
                   <span className="truncate">{item.label}</span>
@@ -103,8 +103,8 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     className={cn(
                       'text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0',
                       isActive
-                        ? 'bg-white/20 text-white'
-                        : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                        ? 'bg-[#102A43]/10 text-[#102A43]'
+                        : 'bg-white/10 text-[#F5B923] border border-white/10'
                     )}
                   >
                     {item.badge}
@@ -117,15 +117,15 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       </div>
 
       {/* Bottom Status Card */}
-      <div className="p-3.5 border-t border-slate-800/80">
-        <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+      <div className="p-3.5 border-t border-white/10">
+        <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-xs font-bold text-slate-200">Blossom Scholars</span>
+              <span className="text-xs font-bold text-slate-200">Admin-controlled services</span>
             </div>
             <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded font-bold">
-              {blossomCount} Students
+              {blossomCount} Blossom
             </span>
           </div>
           <div className="flex justify-between items-center text-[11px] text-slate-400">
@@ -134,7 +134,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           </div>
           <div className="pt-1.5 border-t border-slate-800 text-[10px] text-slate-400 flex items-center justify-between">
             <span>Signed in as:</span>
-            <span className="text-blue-400 font-semibold">{currentRole}</span>
+            <span className="text-[#F5B923] font-semibold">{currentRole}</span>
           </div>
         </div>
       </div>
