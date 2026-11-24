@@ -20,7 +20,7 @@ import {
 
 const MODULES = [
   { name: 'Users & Bulk Accounts', area: 'Foundation', icon: Users, state: 'Build next', detail: 'Admin, trainer and student identities with mandatory password change.' },
-  { name: 'Academic Structure', area: 'Foundation', icon: GraduationCap, state: 'Build next', detail: 'Course, batches, groups, subjects, modules and specialisations.' },
+  { name: 'Academic Structure', area: 'Foundation', icon: GraduationCap, state: 'Active', detail: 'Admin-managed courses, batches, groups, subjects and modules.' },
   { name: 'Approval Centre', area: 'Core LMS', icon: ClipboardCheck, state: 'Planned', detail: 'One review history for content, assignments, results and announcements.' },
   { name: 'Learning Materials', area: 'Core LMS', icon: LibraryBig, state: 'Planned', detail: 'Private files, links, exercises and completion tracking.' },
   { name: 'Assignments & Quizzes', area: 'Core LMS', icon: BookOpenCheck, state: 'Planned', detail: 'Submissions, evaluation, resubmission and result approval.' },
@@ -34,6 +34,7 @@ const MODULES = [
 ];
 
 const STATUS_CLASS: Record<string, string> = {
+  Active: 'bg-green-50 text-green-700 border-green-200',
   'Existing logic': 'bg-teal-50 text-teal-700 border-teal-200',
   'Build next': 'bg-amber-50 text-amber-800 border-amber-200',
   Planned: 'bg-slate-100 text-slate-700 border-slate-200',
